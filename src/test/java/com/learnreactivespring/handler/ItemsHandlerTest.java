@@ -16,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Arrays;
@@ -118,4 +119,81 @@ public class ItemsHandlerTest {
                 .exchange()
                 .expectStatus().isNotFound();
     }
+
+    @Test
+    public void createItem() {
+
+        Item item = new Item(null, "Panasonic OLED 4K", 5999.99);
+
+        webTestClient.post().uri(ItemConstants.ITEM_FUNCTIONAL_ENDPOINT_V1)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Mono.just(item), Item.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.id").isNotEmpty()
+                .jsonPath("$.description").isEqualTo("Panasonic OLED 4K")
+                .jsonPath("$.price").isEqualTo(5999.99);
+    }
+
+    @Test
+    public void deleteItem() {
+
+        webTestClient.delete().uri(ItemConstants.ITEM_FUNCTIONAL_ENDPOINT_V1.concat("/{id}"), "ABC")
+                .accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(Void.class);
+    }
+
+    @Test
+    public void updateItem() {
+
+        String newDescription = "Panasonic OlED 4K";
+        Item item = new Item(null, "Sony Bravia 4K TV", 3199.49);
+
+        webTestClient.put().uri(ItemConstants.ITEM_FUNCTIONAL_ENDPOINT_V1.concat("/{id}"), "ABC")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(item), Item.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.description", newDescription);
+    }
+
+    @Test
+    public void updateItem_notFound() {
+
+        String newDescription = "Panasonic OlED 4K";
+        Item item = new Item(null, "Sony Bravia 4K TV", 3199.49);
+
+        webTestClient.put().uri(ItemConstants.ITEM_FUNCTIONAL_ENDPOINT_V1.concat("/{id}"), "FGS")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(item), Item.class)
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+
+    @Test
+    public void updateItemWith2Changes() {
+
+        String newDescription = "Panasonic OlED 4K";
+        double newPrice = 4899.99;
+        Item item = new Item(null, newDescription, newPrice);
+
+        webTestClient.put().uri(ItemConstants.ITEM_FUNCTIONAL_ENDPOINT_V1.concat("/{id}"), "ABC")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .body(Mono.just(item), Item.class)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.description").isEqualTo(newDescription)
+                .jsonPath("$.price").isEqualTo(newPrice);
+
+    }
+
+
 }

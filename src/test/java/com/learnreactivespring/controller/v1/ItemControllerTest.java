@@ -129,7 +129,7 @@ public class ItemControllerTest {
                 .exchange()
                 .expectStatus().isCreated()
                 .expectBody()
-                .jsonPath("$.price").isNotEmpty()
+                .jsonPath("$.id").isNotEmpty()
                 .jsonPath("$.description").isEqualTo("Panasonic OLED 4K")
                 .jsonPath("$.price").isEqualTo(5999.99);
 
